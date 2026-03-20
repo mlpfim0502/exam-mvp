@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { LiffProvider } from '@/components/LiffProvider';
+import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
   title: 'Exam Practice',
@@ -22,6 +23,7 @@ export default function RootLayout({
             {children}
           </div>
         </LiffProvider>
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );
