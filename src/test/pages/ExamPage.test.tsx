@@ -52,7 +52,7 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import ExamPage from '@/app/exam/[id]/page';
+import ExamPage from '@/app/(mobile)/exam/[id]/page';
 import { useExam } from '@/hooks/useExam';
 
 describe('ExamPage', () => {

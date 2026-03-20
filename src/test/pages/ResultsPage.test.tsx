@@ -51,7 +51,7 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import ResultsPage from '@/app/exam/[id]/results/page';
+import ResultsPage from '@/app/(mobile)/exam/[id]/results/page';
 import { supabase } from '@/lib/supabase';
 import { useSearchParams } from 'next/navigation';
 

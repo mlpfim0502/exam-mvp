@@ -2,8 +2,42 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import type { UserRole } from '@/lib/types';
+
+// ── Admin session auth ─────────────────────────────────────────────────────
+
+const ADMIN_COOKIE = 'admin_session';
+const COOKIE_MAX_AGE = 60 * 60 * 8; // 8 hours
+
+export async function adminLogin(
+  formData: FormData
+): Promise<{ success: boolean; error?: string }> {
+  const password = (formData.get('password') as string)?.trim();
+  const expected = process.env.ADMIN_PASSWORD;
+
+  if (!expected) return { success: false, error: 'ADMIN_PASSWORD env var not set' };
+  if (password !== expected) return { success: false, error: 'Incorrect password' };
+
+  const cookieStore = await cookies();
+  cookieStore.set(ADMIN_COOKIE, 'authenticated', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: COOKIE_MAX_AGE,
+    path: '/',
+  });
+
+  redirect('/admin');
+  return { success: true };
+}
+
+export async function adminLogout(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.delete(ADMIN_COOKIE);
+  redirect('/admin/login');
+}
 
 export async function createClass(formData: FormData): Promise<{ success: boolean; error?: string }> {
   const name = (formData.get('name') as string)?.trim();

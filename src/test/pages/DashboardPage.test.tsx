@@ -30,7 +30,7 @@ vi.mock('@/components/LiffProvider', () => ({
   })),
 }));
 
-import DashboardPage from '@/app/page';
+import DashboardPage from '@/app/(mobile)/page';
 import { useExams } from '@/hooks/useExams';
 import { useSubjects } from '@/hooks/useSubjects';
 

@@ -1,7 +1,6 @@
 // src/app/layout.tsx
 import type { Metadata } from 'next';
 import './globals.css';
-import { LiffProvider } from '@/components/LiffProvider';
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
@@ -17,12 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-        <LiffProvider>
-          {/* Centered container: full-width on mobile, capped on desktop */}
-          <div className="min-h-screen mx-auto max-w-[480px] bg-white shadow-sm">
-            {children}
-          </div>
-        </LiffProvider>
+        {children}
         <Toaster position="top-center" richColors />
       </body>
     </html>
