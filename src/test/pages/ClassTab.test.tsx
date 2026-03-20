@@ -4,6 +4,11 @@ import { vi } from 'vitest';
 import { useRouter } from 'next/navigation';
 import ClassPage from '@/app/(mobile)/page';
 
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(() => ({ push: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), replace: vi.fn(), prefetch: vi.fn() })),
+  usePathname: vi.fn(() => '/'),
+}));
+
 vi.mock('@/components/LiffProvider', () => ({
   useLiff: () => ({ profile: { displayName: 'Test User', pictureUrl: null } }),
 }));
