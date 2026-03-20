@@ -37,6 +37,13 @@ export async function updateClassSubjects(classId: string, subjectIds: string[])
   revalidatePath('/');
 }
 
+// Form-safe wrapper using hidden fields
+export async function saveClassSubjectsForm(formData: FormData) {
+  const classId    = formData.get('classId') as string;
+  const subjectIds = formData.getAll('subject_ids') as string[];
+  await updateClassSubjects(classId, subjectIds);
+}
+
 // Safe form-compatible wrapper: called via .bind(null, classId) on the page,
 // then invoked by Next.js with (FormData) as the only runtime arg.
 export async function saveClassSubjects(classId: string, formData: FormData) {
@@ -57,6 +64,13 @@ export async function updateUserClasses(userId: string, classIds: string[]) {
 
   revalidatePath('/admin/users');
   revalidatePath('/');
+}
+
+// Form-safe wrapper using hidden fields
+export async function saveUserClassesForm(formData: FormData) {
+  const userId   = formData.get('userId') as string;
+  const classIds = formData.getAll('class_ids') as string[];
+  await updateUserClasses(userId, classIds);
 }
 
 export async function updateUserRole(userId: string, role: string) {

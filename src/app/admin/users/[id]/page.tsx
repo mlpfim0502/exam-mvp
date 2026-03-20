@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { updateUserClasses } from '@/actions/classes';
+import { saveUserClassesForm } from '@/actions/classes';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
@@ -22,9 +22,6 @@ export default async function ManageUserClasses({ params }: { params: Promise<{ 
   const { data: assigned } = await supabase.from('user_classes').select('class_id').eq('user_id', userId);
   const assignedClassIds = new Set(assigned?.map(a => a.class_id) || []);
 
-  // Bind server action
-  const saveClasses = updateUserClasses.bind(null, userId);
-
   return (
     <div className="max-w-3xl mx-auto pt-8">
       <div className="mb-6 flex items-center gap-3">
@@ -36,11 +33,8 @@ export default async function ManageUserClasses({ params }: { params: Promise<{ 
 
       <p className="text-gray-500 mb-6">Select the classes (groups) this user belongs to.</p>
 
-      <form action={async (formData) => {
-        'use server';
-        const classIds = formData.getAll('class_ids') as string[];
-        await saveClasses(classIds);
-      }} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <form action={saveUserClassesForm} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <input type="hidden" name="userId" value={userId} />
         
         <div className="space-y-4 max-h-[60vh] overflow-y-auto mb-6">
           {allClasses?.map(c => (
