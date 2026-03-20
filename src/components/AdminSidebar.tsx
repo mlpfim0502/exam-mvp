@@ -3,14 +3,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, BookOpen, Users, GraduationCap, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, GraduationCap, LogOut } from 'lucide-react';
 import { adminLogout } from '@/app/admin/actions';
 
 const NAV_ITEMS = [
-  { label: 'Overview', href: '/admin', icon: LayoutDashboard },
-  { label: 'Classes', href: '/admin/classes', icon: GraduationCap },
-  { label: 'Subjects', href: '/admin/subjects', icon: BookOpen },
-  { label: 'Users', href: '/admin/users', icon: Users },
+  { label: 'Overview', href: '/admin', icon: LayoutDashboard, exact: true },
+  { label: 'Classes', href: '/admin/classes', icon: GraduationCap, exact: false },
+  { label: 'Users', href: '/admin/users', icon: Users, exact: true },
 ];
 
 export default function AdminSidebar() {
@@ -24,8 +23,8 @@ export default function AdminSidebar() {
           Admin
         </p>
         <ul className="space-y-1 flex-1">
-          {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-            const isActive = pathname === href;
+          {NAV_ITEMS.map(({ label, href, icon: Icon, exact }) => {
+            const isActive = exact ? pathname === href : pathname.startsWith(href);
             return (
               <li key={href}>
                 <Link
@@ -57,8 +56,8 @@ export default function AdminSidebar() {
       {/* Mobile bottom nav — hidden on desktop */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50">
         <ul className="flex items-center justify-around">
-          {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-            const isActive = pathname === href;
+          {NAV_ITEMS.map(({ label, href, icon: Icon, exact }) => {
+            const isActive = exact ? pathname === href : pathname.startsWith(href);
             return (
               <li key={href} className="flex-1">
                 <Link

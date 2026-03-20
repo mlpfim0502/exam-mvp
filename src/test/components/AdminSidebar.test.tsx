@@ -20,8 +20,9 @@ describe('AdminSidebar', () => {
     render(<AdminSidebar />);
     expect(screen.getAllByText('Overview').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Classes').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Subjects').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Users').length).toBeGreaterThan(0);
+    // Subjects is no longer a separate nav item
+    expect(screen.queryByText('Subjects')).toBeNull();
   });
 
   it('renders navigation links with correct hrefs', () => {

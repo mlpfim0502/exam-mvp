@@ -1,18 +1,19 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { createSubject } from '@/app/admin/actions';
 import { useClasses } from '@/hooks/useClasses';
 
 export default function AdminNewSubjectPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const { classes } = useClasses();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [classId, setClassId] = useState('');
+  const [classId, setClassId] = useState(searchParams.get('class_id') ?? '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +28,7 @@ export default function AdminNewSubjectPage() {
         toast.error(result.error);
       } else {
         toast.success('Subject created!');
-        router.push('/admin');
+        router.push('/admin/classes');
       }
     });
   };
@@ -45,7 +46,7 @@ export default function AdminNewSubjectPage() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Mathematics"
+            placeholder="e.g. Surgery"
             required
             className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />

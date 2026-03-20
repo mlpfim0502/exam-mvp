@@ -129,3 +129,38 @@ export async function toggleUserRole(
   revalidatePath('/admin/users');
   return { success: true };
 }
+
+export async function deleteSubject(
+  subjectId: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from('subjects')
+    .delete()
+    .eq('id', subjectId);
+
+  if (error) return { success: false, error: error.message };
+  revalidatePath('/admin/classes');
+  return { success: true };
+}
+
+export async function updateSubject(
+  formData: FormData
+): Promise<{ success: boolean; error?: string }> {
+  const id = (formData.get('id') as string)?.trim();
+  const name = (formData.get('name') as string)?.trim();
+  const description = (formData.get('description') as string)?.trim() || null;
+
+  if (!id) return { success: false, error: 'Subject ID is required' };
+  if (!name) return { success: false, error: 'Subject name is required' };
+
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from('subjects')
+    .update({ name, description })
+    .eq('id', id);
+
+  if (error) return { success: false, error: error.message };
+  revalidatePath('/admin/classes');
+  return { success: true };
+}
