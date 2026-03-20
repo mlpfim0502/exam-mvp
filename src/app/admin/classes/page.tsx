@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { Plus, ChevronDown, BookOpen, Pencil, Trash2 } from 'lucide-react';
+import { Plus, ChevronDown, BookOpen, Pencil, Trash2, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useClasses } from '@/hooks/useClasses';
 import { useSubjects } from '@/hooks/useSubjects';
-import { deleteSubject } from '@/app/admin/actions';
+import { updateClass, deleteClass, deleteSubject } from '@/app/admin/actions';
 import type { Subject } from '@/lib/types';
 
 /* ── Subject card shown inside an expanded class ─────────────────────────── */
@@ -71,15 +71,59 @@ function SubjectInfoCard({ subject, onDelete }: { subject: Subject; onDelete: (i
 /* ── Main page ───────────────────────────────────────────────────────────── */
 
 export default function AdminClassesPage() {
-  const { classes, loading: classesLoading } = useClasses();
+  const { classes, loading: classesLoading, refetch } = useClasses();
   const { subjects, loading: subjectsLoading } = useSubjects();
+  
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [removedSubjectIds, setRemovedSubjectIds] = useState<Set<string>>(new Set());
+  
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName]   = useState('');
+  const [isPending, startTransition] = useTransition();
 
   const loading = classesLoading || subjectsLoading;
 
-  const toggle = (id: string) => {
+  const toggle = (id: string, e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('input, .action-btn')) return;
     setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  const startEdit = (id: string, name: string) => {
+    setEditingId(id);
+    setEditName(name);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditName('');
+  };
+
+  const handleUpdate = (id: string) => {
+    const formData = new FormData();
+    formData.set('name', editName);
+    startTransition(async () => {
+      const result = await updateClass(id, formData);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success('Class updated');
+        setEditingId(null);
+        refetch?.();
+      }
+    });
+  };
+
+  const handleDelete = (id: string, name: string) => {
+    if (!confirm(`Delete class "${name}"? This will unlink associated subjects.`)) return;
+    startTransition(async () => {
+      const result = await deleteClass(id);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success('Class deleted');
+        refetch?.();
+      }
+    });
   };
 
   const handleSubjectDeleted = (id: string) => {
@@ -121,33 +165,85 @@ export default function AdminClassesPage() {
             const classSubjects = subjects.filter(
               (s) => s.class_id === cls.id && !removedSubjectIds.has(s.id)
             );
+            const isEditing = editingId === cls.id;
 
             return (
               <div key={cls.id} className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                 {/* Class row */}
                 <button
-                  onClick={() => toggle(cls.id)}
-                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left"
+                  onClick={(e) => toggle(cls.id, e)}
+                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left group"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm
+                  <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0
                       ${isExpanded ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600'}`}>
                       {cls.name.slice(0, 2)}
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{cls.name}</p>
-                      <p className="text-xs text-gray-400">{classSubjects.length} subject{classSubjects.length !== 1 ? 's' : ''}</p>
-                    </div>
+                    {isEditing ? (
+                      <div className="flex items-center gap-2 flex-1">
+                        <input
+                          type="text"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleUpdate(cls.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          autoFocus
+                          className="flex-1 border border-indigo-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        />
+                        <div
+                          onClick={(e) => { e.stopPropagation(); handleUpdate(cls.id); }}
+                          className="action-btn p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors"
+                          aria-label="save"
+                        >
+                          <Check size={16} />
+                        </div>
+                        <div
+                          onClick={(e) => { e.stopPropagation(); cancelEdit(); }}
+                          className="action-btn p-1.5 rounded-lg text-gray-400 hover:bg-gray-50 transition-colors"
+                          aria-label="cancel"
+                        >
+                          <X size={16} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-1 justify-between items-center overflow-hidden">
+                        <div>
+                          <p className="font-semibold text-gray-900 truncate">{cls.name}</p>
+                          <p className="text-xs text-gray-400">{classSubjects.length} subject{classSubjects.length !== 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <ChevronDown
-                    size={18}
-                    className={`text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-                  />
+                  
+                  {!isEditing && (
+                    <div className="flex items-center gap-2 ml-4">
+                      <div className="flex opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                        <div
+                          onClick={(e) => { e.stopPropagation(); startEdit(cls.id, cls.name); }}
+                          className="action-btn p-1.5 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
+                          aria-label="edit"
+                        >
+                          <Pencil size={15} />
+                        </div>
+                        <div
+                          onClick={(e) => { e.stopPropagation(); handleDelete(cls.id, cls.name); }}
+                          className="action-btn p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                          aria-label="delete"
+                        >
+                          <Trash2 size={15} />
+                        </div>
+                      </div>
+                      <ChevronDown
+                        size={18}
+                        className={`text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                      />
+                    </div>
+                  )}
                 </button>
 
                 {/* Expanded subjects panel */}
-                {isExpanded && (
-                  <div className="border-t border-gray-50 bg-gray-50/50 px-5 py-4">
+                {isExpanded && !isEditing && (
+                  <div className="border-t border-gray-50 bg-gray-50/50 px-5 py-4 cursor-default">
                     {/* Add Subject button */}
                     <div className="flex items-center justify-between mb-4">
                       <p className="text-sm font-medium text-gray-500">

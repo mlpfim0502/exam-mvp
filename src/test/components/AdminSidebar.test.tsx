@@ -20,6 +20,7 @@ describe('AdminSidebar', () => {
     render(<AdminSidebar />);
     expect(screen.getAllByText('Overview').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Classes').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Exams').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Users').length).toBeGreaterThan(0);
     // Subjects is no longer a separate nav item
     expect(screen.queryByText('Subjects')).toBeNull();

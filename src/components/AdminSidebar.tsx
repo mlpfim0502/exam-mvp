@@ -1,14 +1,14 @@
-// src/components/AdminSidebar.tsx
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, GraduationCap, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, GraduationCap, LogOut, FileText } from 'lucide-react';
 import { adminLogout } from '@/app/admin/actions';
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/admin', icon: LayoutDashboard, exact: true },
   { label: 'Classes', href: '/admin/classes', icon: GraduationCap, exact: false },
+  { label: 'Exams', href: '/admin/exams', icon: FileText, exact: false },
   { label: 'Users', href: '/admin/users', icon: Users, exact: true },
 ];
 
