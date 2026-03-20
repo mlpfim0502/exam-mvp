@@ -107,4 +107,12 @@ describe('AdminUsersPage', () => {
     fireEvent.click(buttons[0]); // u1 (Alice)
     await waitFor(() => expect(updateUser).toHaveBeenCalledWith('u1', { is_blocked: true }));
   });
+
+  it('shows loading skeleton when loading', async () => {
+    const { useUsers } = (await import('@/hooks/useUsers')) as any;
+    useUsers.mockReturnValueOnce({ users: [], loading: true, error: null });
+    render(<AdminUsersPage />);
+    const skeletons = document.querySelectorAll('.animate-pulse');
+    expect(skeletons.length).toBeGreaterThan(0);
+  });
 });

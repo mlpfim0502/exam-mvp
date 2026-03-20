@@ -3,13 +3,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, BookOpen, Users, GraduationCap, LogOut } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, GraduationCap, LogOut, FileText } from 'lucide-react';
 import { adminLogout } from '@/app/admin/actions';
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/admin', icon: LayoutDashboard },
   { label: 'Classes', href: '/admin/classes', icon: GraduationCap },
   { label: 'Subjects', href: '/admin/subjects', icon: BookOpen },
+  { label: 'Exams', href: '/admin/exams', icon: FileText },
   { label: 'Users', href: '/admin/users', icon: Users },
 ];
 

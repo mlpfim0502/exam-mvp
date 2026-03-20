@@ -9,23 +9,22 @@ export function useSubjects() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState<string | null>(null);
+  const [tick, setTick]         = useState(0);
 
   useEffect(() => {
-    const fetch = async () => {
-      const { data, error } = await supabase
-        .from('subjects')
-        .select('*')
-        .order('name');
+    setLoading(true);
+    supabase
+      .from('subjects')
+      .select('*')
+      .order('name')
+      .then(({ data, error: err }) => {
+        if (err) setError(err.message);
+        else setSubjects(data ?? []);
+        setLoading(false);
+      });
+  }, [tick]);
 
-      if (error) {
-        setError(error.message);
-      } else {
-        setSubjects(data ?? []);
-      }
-      setLoading(false);
-    };
-    fetch();
-  }, []);
+  const refetch = () => setTick((t) => t + 1);
 
-  return { subjects, loading, error };
+  return { subjects, loading, error, refetch };
 }
