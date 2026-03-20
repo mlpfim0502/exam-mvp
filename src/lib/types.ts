@@ -12,11 +12,18 @@ export interface User {
   created_at: string;
 }
 
+export interface Class {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
 export interface Subject {
   id: string;
   name: string;
   description: string | null;
   icon_url: string | null;
+  class_id: string | null;   // ← new field
   created_at: string;
 }
 
