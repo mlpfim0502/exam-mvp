@@ -3,7 +3,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, BookOpen, Users, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, GraduationCap, LogOut } from 'lucide-react';
+import { adminLogout } from '@/app/admin/actions';
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/admin', icon: LayoutDashboard },
@@ -22,7 +23,7 @@ export default function AdminSidebar() {
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-2">
           Admin
         </p>
-        <ul className="space-y-1">
+        <ul className="space-y-1 flex-1">
           {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
             const isActive = pathname === href;
             return (
@@ -42,6 +43,15 @@ export default function AdminSidebar() {
             );
           })}
         </ul>
+        <form action={adminLogout} className="mt-auto pt-4 border-t border-gray-100">
+          <button
+            type="submit"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-50 hover:text-gray-600 w-full transition-colors"
+          >
+            <LogOut size={16} />
+            Sign Out
+          </button>
+        </form>
       </nav>
 
       {/* Mobile bottom nav — hidden on desktop */}

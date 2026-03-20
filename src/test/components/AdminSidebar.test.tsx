@@ -2,6 +2,10 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import AdminSidebar from '@/components/AdminSidebar';
 
+vi.mock('@/app/admin/actions', () => ({
+  adminLogout: vi.fn(),
+}));
+
 vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => '/admin'),
   useParams: vi.fn(() => ({})),
