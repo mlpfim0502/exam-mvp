@@ -24,6 +24,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Link href="/admin/classes" className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-600 hover:text-indigo-600 hover:bg-gray-50 flex-shrink-0">
           <Library size={16} /> Classes
         </Link>
+        <Link href="/admin/exams" className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-600 hover:text-indigo-600 hover:bg-gray-50 flex-shrink-0">
+          <Layers size={16} /> Exams
+        </Link>
         <Link href="/admin/subjects/new" className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-600 hover:text-indigo-600 hover:bg-gray-50 flex-shrink-0">
           <BookOpen size={16} /> New Subject
         </Link>

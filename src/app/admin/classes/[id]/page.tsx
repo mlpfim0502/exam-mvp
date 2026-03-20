@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { updateClassSubjects } from '@/actions/classes';
+import { saveClassSubjects } from '@/actions/classes';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
@@ -22,8 +22,7 @@ export default async function ManageClassSubjects({ params }: { params: { id: st
   const { data: assigned } = await supabase.from('class_subjects').select('subject_id').eq('class_id', classId);
   const assignedSubjectIds = new Set(assigned?.map(a => a.subject_id) || []);
 
-  // We'll wrap the server action to inject classId
-  const saveSubjects = updateClassSubjects.bind(null, classId);
+  const formAction = saveClassSubjects.bind(null, classId);
 
   return (
     <div className="max-w-3xl mx-auto pt-8">
@@ -38,11 +37,7 @@ export default async function ManageClassSubjects({ params }: { params: { id: st
 
       <p className="text-gray-500 mb-6">Select the subjects that students in this class should automatically have access to.</p>
 
-      <form action={async (formData) => {
-        'use server';
-        const subjectIds = formData.getAll('subject_ids') as string[];
-        await saveSubjects(subjectIds);
-      }} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <form action={formAction} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         
         <div className="space-y-4 max-h-[60vh] overflow-y-auto mb-6">
           {allSubjects?.map(subject => (

@@ -37,6 +37,13 @@ export async function updateClassSubjects(classId: string, subjectIds: string[])
   revalidatePath('/');
 }
 
+// Safe form-compatible wrapper: called via .bind(null, classId) on the page,
+// then invoked by Next.js with (FormData) as the only runtime arg.
+export async function saveClassSubjects(classId: string, formData: FormData) {
+  const subjectIds = formData.getAll('subject_ids') as string[];
+  await updateClassSubjects(classId, subjectIds);
+}
+
 export async function updateUserClasses(userId: string, classIds: string[]) {
   // Clear old class assignments
   await supabase.from('user_classes').delete().eq('user_id', userId);

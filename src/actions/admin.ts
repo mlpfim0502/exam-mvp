@@ -54,3 +54,31 @@ export async function createExam(formData: FormData) {
   revalidatePath('/admin');
   return data;
 }
+
+export async function createQuestion(examId: string, formData: FormData) {
+  const q_num_str   = formData.get('q_num') as string;
+  const type        = formData.get('type') as string;
+  const stem        = formData.get('stem') as string;
+  const answer      = formData.get('answer') as string;
+  const opt_a       = (formData.get('opt_a') as string) || null;
+  const opt_b       = (formData.get('opt_b') as string) || null;
+  const opt_c       = (formData.get('opt_c') as string) || null;
+  const opt_d       = (formData.get('opt_d') as string) || null;
+  const opt_e       = (formData.get('opt_e') as string) || null;
+  const explanation = (formData.get('explanation') as string) || null;
+
+  if (!stem || !answer || !type) throw new Error('stem, type, and answer are required');
+
+  const q_num = q_num_str ? parseInt(q_num_str, 10) : 1;
+
+  const { data, error } = await supabase
+    .from('questions')
+    .insert([{ exam_id: examId, q_num, type, stem, opt_a, opt_b, opt_c, opt_d, opt_e, answer, explanation }])
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/admin/exams/${examId}`);
+  return data;
+}
