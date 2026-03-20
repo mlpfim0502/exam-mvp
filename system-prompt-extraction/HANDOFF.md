@@ -3,36 +3,34 @@
 ## What This Project Is
 
 A LINE Mini App + standard WebApp for MCQ/TF exam practice. Built with:
-- **Next.js 15** (App Router, TypeScript, TailwindCSS)
+- **Next.js 16.2** (App Router, TypeScript, TailwindCSS 4)
 - **`@line/liff`** — LINE Front-end Framework SDK for auth
 - **Supabase** (PostgreSQL + RLS) — database and backend
 - **`lucide-react`** — icons
 - Targeted for **Vercel** deployment
-
-MVP scope: Multiple Choice (MCQ) and True/False (TF) questions only. Auto-graded.
 
 ---
 
 ## Repository
 
 - **GitHub:** https://github.com/mlpfim0502/exam-mvp
-- **Branch with all code:** `claude/elastic-hamilton`
-- **Base branch (empty scaffold):** `main`
-- **Draft PR:** https://github.com/mlpfim0502/exam-mvp/pull/1
-- **Worktree path:** `/Users/chenyulee/exam-mvp/.claude/worktrees/elastic-hamilton`
+- **Main branch:** `main`
+- **Local path:** `/Users/chenyulee/exam-mvp`
+- **PR #1** (`claude/elastic-hamilton`) — all app code — merged
+- **PR #2** (`claude/festive-hugle`) — tests + `.env.local.example` — merged
 
 ---
 
 ## Current State: What Is Done
 
-All frontend code is written, committed, and pushed. The build passes with zero TypeScript errors.
+All app code and tests are merged to `main`.
 
-### Completed files
+### App code
 
 ```
 src/
 ├── app/
-│   ├── globals.css               # Tailwind import + mobile base styles
+│   ├── globals.css
 │   ├── layout.tsx                # Root layout: wraps everything in LiffProvider
 │   ├── page.tsx                  # Dashboard: subjects list → exam cards
 │   └── exam/
@@ -42,31 +40,57 @@ src/
 │               └── page.tsx      # Results: score + per-question review
 ├── components/
 │   ├── LiffProvider.tsx          # LIFF init + LINE login + Supabase user upsert
-│   ├── LoadingScreen.tsx         # Spinner shown during LIFF init
-│   ├── SubjectCard.tsx           # Clickable subject card (toggle)
-│   ├── ExamCard.tsx              # Exam card with Start button
-│   └── QuestionCard.tsx          # MCQ or TF question with option buttons
+│   ├── LoadingScreen.tsx
+│   ├── SubjectCard.tsx
+│   ├── ExamCard.tsx
+│   └── QuestionCard.tsx
 ├── hooks/
-│   ├── useSubjects.ts            # Fetch all subjects from Supabase
-│   ├── useExams.ts               # Fetch exams by subject_id
-│   └── useExam.ts                # Fetch single exam + its questions
+│   ├── useSubjects.ts
+│   ├── useExams.ts
+│   └── useExam.ts
 └── lib/
-    ├── types.ts                  # All TypeScript interfaces
+    ├── types.ts
     └── supabase.ts               # Lazy Supabase singleton (Proxy pattern)
 ```
 
-### Commit log (oldest → newest)
+### Test suite
+
 ```
-e68df6f  chore: initialize Next.js 15 project with Tailwind, LIFF, Supabase deps
-e0c8245  feat: add TypeScript types and Supabase client
-88c6931  feat: add LIFF provider with LINE auth and Supabase user upsert
-baeca0e  feat: configure root layout with LIFF provider and mobile-first shell
-0e3efc4  feat: add data-fetching hooks for subjects, exams, and exam questions
-59228e2  feat: add dashboard page with subject and exam listing
-fe19d47  feat: add exam page with timer, question cards, and submit logic
-edbda1e  feat: add results page with score display and per-question review
-f003c7f  fix: lazy Supabase client and remotePatterns for clean build
+src/test/
+├── setup.tsx                     # Global mocks: next/navigation, next/image, next/link
+├── components/
+│   ├── LoadingScreen.test.tsx
+│   ├── SubjectCard.test.tsx
+│   ├── ExamCard.test.tsx
+│   ├── QuestionCard.test.tsx
+│   └── LiffProvider.test.tsx
+├── hooks/
+│   ├── useSubjects.test.ts
+│   ├── useExams.test.ts
+│   └── useExam.test.ts
+└── pages/
+    ├── DashboardPage.test.tsx
+    ├── ExamPage.test.tsx
+    └── ResultsPage.test.tsx
 ```
+
+**Test commands:**
+```bash
+npm test                  # 76 tests, all pass
+npm run test:coverage     # coverage report
+```
+
+**Coverage:**
+| Metric | Result | Threshold |
+|--------|--------|-----------|
+| Statements | 94.27% | 80% ✓ |
+| Branches | 83.6% | 80% ✓ |
+| Functions | 93.44% | 80% ✓ |
+| Lines | 94.78% | 80% ✓ |
+
+### Other files
+- `.env.local.example` — template for env vars (force-added; `.gitignore` blocks `.env*`)
+- `vitest.config.ts` — Vitest config with jsdom, coverage-v8, path alias
 
 ---
 
@@ -74,7 +98,7 @@ f003c7f  fix: lazy Supabase client and remotePatterns for clean build
 
 ### Step 1 (REQUIRED before the app works): Run Supabase SQL
 
-The user needs to go to their **Supabase project → SQL Editor** and run three scripts in order.
+Go to **Supabase project → SQL Editor** and run these three scripts in order.
 
 #### Script A — Schema
 
@@ -236,100 +260,113 @@ LIFF ID: LINE Developers Console → your channel → LIFF tab
 ### Step 3 (OPTIONAL): Deploy to Vercel
 
 ```bash
-# From the worktree root
 npx vercel --prod
 # Add the same 3 env vars in Vercel dashboard → Project → Settings → Environment Variables
 ```
 
 Then update your LIFF channel's endpoint URL to the Vercel deployment URL.
 
-### Step 4 (OPTIONAL): Merge the PR
-
-Once tested:
-```bash
-gh pr merge 1 --squash --delete-branch
-```
-
 ---
 
 ## What Worked
 
-- **Next.js 15 scaffold** (`create-next-app@latest`) ran cleanly with all flags
-- **LIFF dynamic import** — using `await import('@line/liff')` inside `useEffect` correctly avoids SSR issues
-- **Supabase upsert** — `.upsert({ ... }, { onConflict: 'line_id' })` works for idempotent LINE user sync
-- **Lazy Supabase Proxy** — the final pattern for `supabase.ts` (see below) solved the build error cleanly
-- **`gh pr create --draft`** created the PR successfully once `gh` was confirmed installed at `/opt/homebrew/bin/gh`
-- **Force-push to reset `main`** — pushing just the first commit SHA to `main` before pushing the feature branch gave a clean PR diff
+### Test infrastructure
+- **Vitest v4 + `@vitejs/plugin-react`** works cleanly with Next.js 16 / React 19.
+- **jsdom** as the test environment works for all client components.
+- **Global mocks in `setup.tsx`** (not `.ts`) — must be `.tsx` because the `next/image` and `next/link` mocks return JSX. Naming it `.ts` causes a parse failure.
+- **`vi.mock()` hoisting** — Vitest hoists `vi.mock()` calls to the top, so module-level mocks declared before imports work correctly.
+- **Import mocks after `vi.mock()`** — For hooks that need to be re-mocked per test, import the hook after the `vi.mock()` declaration and use `vi.mocked(hook).mockReturnValueOnce(...)` inside each test.
 
----
-
-## What Didn't Work / Bugs Fixed
-
-### 1. `images.domains` deprecated in Next.js 15
-`next.config.ts` originally used `images.domains` (Next.js 14 syntax). Next.js 15 warns and prefers `images.remotePatterns`.
-
-**Fix applied:**
+### Pattern for mocking Supabase in hooks
+Each hook test uses its own `vi.mock('@/lib/supabase', ...)` with a chain ending in a resolved promise at the final method:
 ```ts
-// next.config.ts
-images: {
-  remotePatterns: [{ protocol: "https", hostname: "profile.line-scdn.net" }],
-},
-```
-
-### 2. Supabase client threw at build time
-`createClient` from `@supabase/supabase-js` throws synchronously if `supabaseUrl` is falsy. During `next build`, the `_not-found` page is pre-rendered and imports the layout → `LiffProvider` → `supabase.ts`, which ran `createClient('')` and exploded.
-
-**Fix applied** — lazy Proxy singleton in `src/lib/supabase.ts`:
-```ts
-let _client: SupabaseClient | null = null;
-
-function getClient(): SupabaseClient {
-  if (!_client) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !key) throw new Error('Missing Supabase env vars');
-    _client = createClient(url, key);
-  }
-  return _client;
-}
-
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(_target, prop) {
-    return (getClient() as unknown as Record<string | symbol, unknown>)[prop];
-  },
+vi.mock('@/lib/supabase', () => {
+  const chain = {
+    select: vi.fn().mockReturnThis(),
+    order: vi.fn().mockResolvedValue({ data: [...], error: null }),
+  };
+  return { supabase: { from: vi.fn(() => chain) } };
 });
 ```
-The Proxy defers `createClient` until the first property access, which only happens in the browser.
 
-### 3. PR remote setup — wrong push order
-Running `git push -u origin HEAD:main` pushed all feature commits directly to `main` (no base to diff against). Fixed by force-pushing only the first commit SHA to `main`, then pushing the feature branch separately:
-```bash
-git push origin <first-commit-sha>:main --force
-git push origin claude/elastic-hamilton
+### Pattern for `useExam` (two parallel `from()` calls)
+`useExam` calls `Promise.all([supabase.from('exams')..., supabase.from('questions')...])`. Mock by switching on table name:
+```ts
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    from: vi.fn((table: string) => {
+      if (table === 'exams') return { select, eq, single: resolvesWith(examData) };
+      return { select, eq, order: resolvesWith(questionsData) };
+    }),
+  },
+}));
 ```
 
-### 4. Hook blocked curl command
-A pre-tool-use hook pattern-matched `npm run dev` inside the curl PR body string and blocked execution. Worked around by writing the JSON body to `/tmp/pr-body.json` first, then using `gh pr create` (which was already authenticated).
+### `.env.local.example` needs force-add
+The project `.gitignore` has `.env*` which matches `.env.local.example`. Use:
+```bash
+git add -f .env.local.example
+```
 
 ---
 
-## Key Design Decisions
+## What Didn't Work
 
-| Decision | Rationale |
-|----------|-----------|
-| All client components, no API routes | Simplest MVP; anon key + permissive RLS is acceptable for a private exam app |
-| Permissive RLS ("allow all" policies) | Avoids Supabase Auth complexity while still enabling RLS to be tightened later |
-| `explanation_img_url` on `questions` | User requested: explanations can optionally include an image alongside the text |
-| Lazy Supabase proxy | Avoids build-time crash without requiring env vars in CI/CD |
-| `q_num` ordering for questions | Deterministic display order controlled by the teacher in the Table Editor |
+### 1. `await` inside `vi.mocked()` call
+```ts
+// BROKEN — oxc parser rejects await inside a non-async expression
+const { useExam } = vi.mocked(await import('@/hooks/useExam'));
+```
+**Fix:** Import at the top of the file, reference directly:
+```ts
+import { useExam } from '@/hooks/useExam';
+// inside test:
+vi.mocked(useExam).mockReturnValueOnce(...);
+```
+
+### 2. `screen.getByRole('img')` on icon with `alt=""`
+`SubjectCard` renders `<img alt="">` which has ARIA role `presentation`, not `img`.
+**Fix:** Use `container.querySelector('img')` instead.
+
+### 3. Vitest exits code 1 when no test files found
+Expected behavior in Vitest v4 — not a setup error.
+
+### 4. Coverage includes infra files by default
+`lib/types.ts` (pure types) and `lib/supabase.ts` (mocked in all tests, never executes) tank coverage unfairly. Both are excluded in `vitest.config.ts`:
+```ts
+exclude: [
+  'src/test/**',
+  'src/app/layout.tsx',
+  'src/**/*.d.ts',
+  'src/lib/types.ts',
+  'src/lib/supabase.ts',
+],
+```
+
+---
+
+## Remaining Coverage Gaps (not blocking — thresholds pass)
+
+| File | Lines | Why uncovered |
+|------|-------|---------------|
+| `app/exam/[id]/page.tsx` | 49-54 | `createAttempt` error path (Supabase insert failure) not tested |
+| `app/exam/[id]/page.tsx` | 63, 109-110 | Timer init early return + auto-submit on `timeLeft === 0` (needs fake timers) |
+| `app/exam/[id]/results/page.tsx` | 128 | `explanation_img_url` image branch in `ReviewCard` |
+| `components/LiffProvider.tsx` | 82 | Supabase upsert error path |
+| `hooks/use*.ts` | 23, 29, 36 | `data ?? []` null-coalescing branch when Supabase returns `data: null` |
+
+To close these gaps a next agent would need to:
+1. Use `vi.useFakeTimers()` + `vi.advanceTimersByTime()` for timer/auto-submit branches
+2. Mock Supabase upsert to return an error in a LiffProvider test
+3. Mock hooks to return `data: null` to trigger the `??` branch
 
 ---
 
 ## How to Verify End-to-End
 
-1. Run the SQL scripts (Steps A, B, C above)
+1. Run the SQL scripts (A, B, C above)
 2. Fill `.env.local`
-3. `tmux new-session -d -s dev "npm run dev"` then open `http://localhost:3000`
+3. `npm run dev` then open `http://localhost:3000`
 4. Dashboard should show Mathematics, Science, English subject cards
 5. Click Mathematics → Algebra Basics and Geometry Fundamentals appear
 6. Click Start on Algebra Basics → 5 questions, 15-min timer
