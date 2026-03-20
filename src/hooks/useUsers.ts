@@ -15,6 +15,7 @@ export function useUsers() {
       .from('users')
       .select('*')
       .order('created_at')
+      .limit(500)
       .then(({ data, error: err }) => {
         if (err) setError(err.message);
         else setUsers(data ?? []);

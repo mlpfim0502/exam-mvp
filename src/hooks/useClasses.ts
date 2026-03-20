@@ -15,6 +15,7 @@ export function useClasses() {
       .from('classes')
       .select('*')
       .order('name')
+      .limit(200)
       .then(({ data, error: err }) => {
         if (err) setError(err.message);
         else setClasses(data ?? []);

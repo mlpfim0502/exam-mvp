@@ -17,7 +17,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
     select: vi.fn().mockReturnValue({
-      order: vi.fn().mockResolvedValue({ data: mockUsers, error: null }),
+      order: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({ data: mockUsers, error: null }),
+      }),
     }),
   });
 });
@@ -38,7 +40,9 @@ describe('useUsers', () => {
   it('sets error when fetch fails', async () => {
     (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
       select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } }),
+        order: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } }),
+        }),
       }),
     });
     const { result } = renderHook(() => useUsers());

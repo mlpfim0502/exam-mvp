@@ -26,15 +26,33 @@ const mockInsert = vi.fn();
 const mockUpdate = vi.fn();
 const mockFrom = vi.fn();
 
+// A thenable object that also exposes .single — used for eq() in both read and write chains.
+// When awaited it resolves to resolvedValue; when used as a builder it exposes .single.
+function makeEqResult(singleMock: ReturnType<typeof vi.fn>, resolvedValue: object) {
+  const promise = Promise.resolve(resolvedValue);
+  return {
+    single: singleMock,
+    error: null,
+    then: promise.then.bind(promise),
+    catch: promise.catch.bind(promise),
+    finally: promise.finally.bind(promise),
+  };
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   (createAdminClient as ReturnType<typeof vi.fn>).mockReturnValue({ from: mockFrom });
-  mockFrom.mockReturnValue({ insert: mockInsert, update: mockUpdate });
+  mockFrom.mockImplementation((_table: string) => ({
+    insert: mockInsert,
+    update: mockUpdate,
+    select: mockSelect,
+  }));
   mockInsert.mockReturnValue({ select: mockSelect });
-  mockSelect.mockReturnValue({ single: mockSingle });
-  mockSingle.mockResolvedValue({ data: { id: 'new-uuid' }, error: null });
+  mockSelect.mockReturnValue({ eq: mockEq, single: mockSingle, order: vi.fn() });
+  mockSingle.mockResolvedValue({ data: { id: 'new-uuid', role: 'student' }, error: null });
   mockUpdate.mockReturnValue({ eq: mockEq });
-  mockEq.mockResolvedValue({ error: null });
+  // mockEq returns an object with .single for the select chain AND is awaitable for the update chain
+  mockEq.mockReturnValue(makeEqResult(mockSingle, { error: null }));
 });
 
 describe('createClass', () => {
@@ -98,6 +116,8 @@ describe('createSubject', () => {
 
 describe('toggleUserRole', () => {
   it('sets role to admin when current role is student', async () => {
+    // DB returns role: 'student', so new role should be 'admin'
+    mockSingle.mockResolvedValue({ data: { id: 'user-uuid', role: 'student' }, error: null });
     const result = await toggleUserRole('user-uuid', 'student');
     expect(mockFrom).toHaveBeenCalledWith('users');
     expect(mockUpdate).toHaveBeenCalledWith({ role: 'admin' });
@@ -106,13 +126,24 @@ describe('toggleUserRole', () => {
   });
 
   it('sets role to student when current role is admin', async () => {
+    // DB returns role: 'admin', so new role should be 'student'
+    mockSingle.mockResolvedValue({ data: { id: 'user-uuid', role: 'admin' }, error: null });
     const result = await toggleUserRole('user-uuid', 'admin');
     expect(mockUpdate).toHaveBeenCalledWith({ role: 'student' });
     expect(result).toEqual({ success: true });
   });
 
+  it('returns error when DB fetch fails', async () => {
+    mockSingle.mockResolvedValueOnce({ data: null, error: { message: 'User not found' } });
+    const result = await toggleUserRole('user-uuid', 'student');
+    expect(result).toEqual({ success: false, error: 'User not found' });
+  });
+
   it('returns error when update fails', async () => {
-    mockEq.mockResolvedValueOnce({ error: { message: 'Permission denied' } });
+    mockSingle.mockResolvedValue({ data: { id: 'user-uuid', role: 'student' }, error: null });
+    // First eq() call is for the select chain (returns obj with .single); second is for update (returns error)
+    mockEq.mockReturnValueOnce(makeEqResult(mockSingle, { error: null }));
+    mockEq.mockReturnValueOnce(makeEqResult(mockSingle, { error: { message: 'Permission denied' } }));
     const result = await toggleUserRole('user-uuid', 'student');
     expect(result).toEqual({ success: false, error: 'Permission denied' });
   });
@@ -132,7 +163,7 @@ describe('saveUserClassesForm', () => {
     await saveUserClassesForm(formData);
     expect(mockFrom).toHaveBeenCalledWith('classes');
     expect(mockInsert).toHaveBeenCalledWith({ name: 'M6' });
-    expect(revalidatePath).toHaveBeenCalledWith('/admin');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/classes');
   });
 
   it('returns success on insert with no error', async () => {

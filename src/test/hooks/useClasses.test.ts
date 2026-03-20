@@ -19,7 +19,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
     select: vi.fn().mockReturnValue({
-      order: vi.fn().mockResolvedValue({ data: mockClasses, error: null }),
+      order: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({ data: mockClasses, error: null }),
+      }),
     }),
   });
 });
@@ -40,7 +42,9 @@ describe('useClasses', () => {
   it('sets error when fetch fails', async () => {
     (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
       select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({ data: null, error: { message: 'Network error' } }),
+        order: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue({ data: null, error: { message: 'Network error' } }),
+        }),
       }),
     });
     const { result } = renderHook(() => useClasses());

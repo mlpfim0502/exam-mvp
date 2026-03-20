@@ -61,7 +61,8 @@ export async function saveUserClassesForm(formData: FormData): Promise<{ success
 
   if (error) return { success: false, error: error.message };
 
-  revalidatePath('/admin');
+  // Revalidate the classes admin page (the redirect target for this form)
+  revalidatePath('/admin/classes');
   const result = { success: true } as const;
   redirect('/admin/classes');
   return result;
@@ -71,15 +72,26 @@ export async function toggleUserRole(
   userId: string,
   currentRole: UserRole
 ): Promise<{ success: boolean; error?: string }> {
-  const newRole: UserRole = currentRole === 'admin' ? 'student' : 'admin';
   const supabase = createAdminClient();
+
+  // Re-read current role from DB to prevent privilege escalation
+  const { data: userData, error: fetchError } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', userId)
+    .single();
+
+  if (fetchError || !userData) {
+    return { success: false, error: fetchError?.message ?? 'User not found' };
+  }
+
+  const newRole: UserRole = userData.role === 'admin' ? 'student' : 'admin';
   const { error } = await supabase
     .from('users')
     .update({ role: newRole })
     .eq('id', userId);
 
   if (error) return { success: false, error: error.message };
-
   revalidatePath('/admin/users');
   return { success: true };
 }
