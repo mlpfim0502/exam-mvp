@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import AdminUsersPage from '@/app/admin/users/page';
 
 vi.mock('@/hooks/useUsers', () => ({
@@ -12,31 +12,6 @@ vi.mock('@/hooks/useUsers', () => ({
     error: null,
   })),
 }));
-
-vi.mock('@/app/admin/actions', () => ({
-  toggleUserRole: vi.fn().mockResolvedValue({ success: true }),
-}));
-
-vi.mock('sonner', () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
-}));
-
-// Mock window.confirm
-const originalConfirm = window.confirm;
-beforeEach(() => {
-  vi.clearAllMocks();
-  Object.defineProperty(window, 'confirm', {
-    writable: true,
-    value: vi.fn(() => true),
-  });
-});
-
-afterEach(() => {
-  Object.defineProperty(window, 'confirm', {
-    writable: true,
-    value: originalConfirm,
-  });
-});
 
 describe('AdminUsersPage', () => {
   it('renders the page heading', () => {
@@ -56,51 +31,11 @@ describe('AdminUsersPage', () => {
     expect(screen.getByText('admin')).toBeInTheDocument();
   });
 
-  it('renders a toggle role button for each user', () => {
+  it('shows loading skeleton when loading', async () => {
+    const { useUsers } = (await import('@/hooks/useUsers')) as any;
+    useUsers.mockReturnValueOnce({ users: [], loading: true, error: null });
     render(<AdminUsersPage />);
-    const buttons = screen.getAllByRole('button', { name: /toggle role/i });
-    expect(buttons).toHaveLength(2);
-  });
-
-  it('calls window.confirm before toggling role', () => {
-    render(<AdminUsersPage />);
-    const buttons = screen.getAllByRole('button', { name: /toggle role/i });
-    fireEvent.click(buttons[0]);
-    expect(window.confirm).toHaveBeenCalled();
-  });
-
-  it('calls toggleUserRole when user confirms', async () => {
-    const { toggleUserRole } = await import('@/app/admin/actions');
-    render(<AdminUsersPage />);
-    const buttons = screen.getAllByRole('button', { name: /toggle role/i });
-    fireEvent.click(buttons[0]);
-    await waitFor(() => expect(toggleUserRole).toHaveBeenCalledWith('u1', 'student'));
-  });
-
-  it('does not call toggleUserRole when user cancels', async () => {
-    (window.confirm as ReturnType<typeof vi.fn>).mockReturnValueOnce(false);
-    const { toggleUserRole } = await import('@/app/admin/actions');
-    render(<AdminUsersPage />);
-    const buttons = screen.getAllByRole('button', { name: /toggle role/i });
-    fireEvent.click(buttons[0]);
-    expect(toggleUserRole).not.toHaveBeenCalled();
-  });
-
-  it('shows success toast after successful toggle', async () => {
-    const { toast } = await import('sonner');
-    render(<AdminUsersPage />);
-    const buttons = screen.getAllByRole('button', { name: /toggle role/i });
-    fireEvent.click(buttons[0]);
-    await waitFor(() => expect(toast.success).toHaveBeenCalled());
-  });
-
-  it('shows error toast when toggle fails', async () => {
-    const { toggleUserRole } = await import('@/app/admin/actions');
-    (toggleUserRole as ReturnType<typeof vi.fn>).mockResolvedValue({ success: false, error: 'Forbidden' });
-    const { toast } = await import('sonner');
-    render(<AdminUsersPage />);
-    const buttons = screen.getAllByRole('button', { name: /toggle role/i });
-    fireEvent.click(buttons[0]);
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Forbidden'));
+    const skeletons = document.querySelectorAll('.animate-pulse');
+    expect(skeletons.length).toBeGreaterThan(0);
   });
 });

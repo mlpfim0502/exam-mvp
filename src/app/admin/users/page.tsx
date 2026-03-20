@@ -1,33 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
-import { toast } from 'sonner';
 import { useUsers } from '@/hooks/useUsers';
-import { toggleUserRole } from '@/app/admin/actions';
-import type { UserRole } from '@/lib/types';
 
 export default function AdminUsersPage() {
   const { users, loading } = useUsers();
-  const [pendingId, setPendingId] = useState<string | null>(null);
-
-  const handleToggle = async (userId: string, currentRole: UserRole) => {
-    const newRole = currentRole === 'admin' ? 'student' : 'admin';
-    const confirmed = window.confirm(
-      `Change this user's role from "${currentRole}" to "${newRole}"?`
-    );
-    if (!confirmed) return;
-
-    setPendingId(userId);
-    const result = await toggleUserRole(userId, currentRole);
-    setPendingId(null);
-
-    if (result.error) {
-      toast.error(result.error);
-    } else {
-      toast.success(`Role updated to ${newRole}`);
-    }
-  };
 
   if (loading) {
     return (
@@ -58,26 +35,10 @@ export default function AdminUsersPage() {
                 {(user.display_name ?? 'U')[0]}
               </div>
             )}
-            <div className="flex-1">
+            <div>
               <p className="text-sm font-medium text-gray-900">{user.display_name}</p>
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full font-medium
-                  ${user.role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}
-              >
-                {user.role}
-              </span>
+              <span className="text-xs text-gray-400">{user.role}</span>
             </div>
-            <button
-              onClick={() => handleToggle(user.id, user.role)}
-              disabled={pendingId === user.id}
-              aria-label="toggle role"
-              className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors
-                ${pendingId === user.id
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}`}
-            >
-              {pendingId === user.id ? '...' : 'Toggle Role'}
-            </button>
           </div>
         ))}
       </div>

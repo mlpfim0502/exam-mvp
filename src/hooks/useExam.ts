@@ -10,6 +10,7 @@ interface UseExamResult {
   questions: Question[];
   loading: boolean;
   error: string | null;
+  refetch: () => void;
 }
 
 export function useExam(examId: string): UseExamResult {
@@ -17,18 +18,14 @@ export function useExam(examId: string): UseExamResult {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState<string | null>(null);
+  const [tick, setTick]           = useState(0);
 
   useEffect(() => {
-    const fetch = async () => {
-      const [examRes, questionsRes] = await Promise.all([
-        supabase.from('exams').select('*').eq('id', examId).single(),
-        supabase
-          .from('questions')
-          .select('*')
-          .eq('exam_id', examId)
-          .order('q_num'),
-      ]);
-
+    setLoading(true);
+    Promise.all([
+      supabase.from('exams').select('*').eq('id', examId).single(),
+      supabase.from('questions').select('*').eq('exam_id', examId).order('q_num'),
+    ]).then(([examRes, questionsRes]) => {
       if (examRes.error) {
         setError(examRes.error.message);
       } else {
@@ -36,9 +33,10 @@ export function useExam(examId: string): UseExamResult {
         setQuestions(questionsRes.data ?? []);
       }
       setLoading(false);
-    };
-    fetch();
-  }, [examId]);
+    });
+  }, [examId, tick]);
 
-  return { exam, questions, loading, error };
+  const refetch = () => setTick((t) => t + 1);
+
+  return { exam, questions, loading, error, refetch };
 }
