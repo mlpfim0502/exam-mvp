@@ -1,29 +1,20 @@
-// src/app/page.tsx
+// src/app/(mobile)/page.tsx
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import { GraduationCap } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useLiff } from '@/components/LiffProvider';
 import { useSubjects } from '@/hooks/useSubjects';
-import { useExams } from '@/hooks/useExams';
 import SubjectCard from '@/components/SubjectCard';
-import ExamCard from '@/components/ExamCard';
 
-export default function DashboardPage() {
+export default function ClassPage() {
   const { profile } = useLiff();
-  const { subjects, loading: subjectsLoading } = useSubjects();
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
-  const { exams, loading: examsLoading } = useExams(selectedSubjectId);
-
-  const selectedSubject = subjects.find((s) => s.id === selectedSubjectId);
-
-  const handleSubjectClick = (id: string) => {
-    setSelectedSubjectId((prev) => (prev === id ? null : id)); // toggle
-  };
+  const { subjects, loading } = useSubjects();
+  const router = useRouter();
 
   return (
-    <div className="pb-10">
+    <div>
       {/* Header */}
       <div className="bg-gradient-to-br from-indigo-600 to-indigo-500 px-5 pt-10 pb-8 text-white">
         <div className="flex items-center gap-3 mb-4">
@@ -50,12 +41,11 @@ export default function DashboardPage() {
       </div>
 
       <div className="px-4 -mt-4">
-        {/* Subjects section */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
+        <div className="bg-white rounded-2xl shadow-sm p-4">
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
             Subjects
           </h2>
-          {subjectsLoading ? (
+          {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-16 bg-gray-100 rounded-2xl animate-pulse" />
@@ -67,37 +57,13 @@ export default function DashboardPage() {
                 <SubjectCard
                   key={subject.id}
                   subject={subject}
-                  isSelected={selectedSubjectId === subject.id}
-                  onClick={() => handleSubjectClick(subject.id)}
+                  isSelected={false}
+                  onClick={() => router.push(`/qbank/${subject.id}`)}
                 />
               ))}
             </div>
           )}
         </div>
-
-        {/* Exams section (shown when a subject is selected) */}
-        {selectedSubjectId && (
-          <div className="bg-white rounded-2xl shadow-sm p-4">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
-              {selectedSubject?.name} — Exams
-            </h2>
-            {examsLoading ? (
-              <div className="space-y-3">
-                {[1, 2].map((i) => (
-                  <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
-                ))}
-              </div>
-            ) : exams.length === 0 ? (
-              <p className="text-gray-400 text-sm py-4 text-center">No exams available yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {exams.map((exam) => (
-                  <ExamCard key={exam.id} exam={exam} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

@@ -1,23 +1,16 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
-import type { Subject, Exam } from '@/lib/types';
+import { useRouter } from 'next/navigation';
+import type { Subject } from '@/lib/types';
 
 const subjects: Subject[] = [
-  { id: 's1', name: 'Mathematics', description: 'Algebra', icon_url: null, created_at: '' },
-  { id: 's2', name: 'Science', description: 'Physics', icon_url: null, created_at: '' },
-];
-
-const exams: Exam[] = [
-  { id: 'e1', subject_id: 's1', title: 'Algebra Basics', description: null, time_limit_minutes: 15, created_at: '' },
+  { id: 's1', name: 'Mathematics', description: 'Algebra', icon_url: null, class_id: null, created_at: '' },
+  { id: 's2', name: 'Science', description: 'Physics', icon_url: null, class_id: null, created_at: '' },
 ];
 
 // Mock hooks
 vi.mock('@/hooks/useSubjects', () => ({
   useSubjects: vi.fn(() => ({ subjects, loading: false, error: null })),
-}));
-
-vi.mock('@/hooks/useExams', () => ({
-  useExams: vi.fn(() => ({ exams: [], loading: false, error: null })),
 }));
 
 vi.mock('@/components/LiffProvider', () => ({
@@ -31,7 +24,6 @@ vi.mock('@/components/LiffProvider', () => ({
 }));
 
 import DashboardPage from '@/app/(mobile)/page';
-import { useExams } from '@/hooks/useExams';
 import { useSubjects } from '@/hooks/useSubjects';
 
 describe('DashboardPage', () => {
@@ -51,40 +43,23 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Science')).toBeInTheDocument();
   });
 
-  it('does not show exams section before selecting a subject', () => {
+  it('does not show inline exams section', () => {
     render(<DashboardPage />);
     expect(screen.queryByText('Algebra Basics')).not.toBeInTheDocument();
   });
 
-  it('shows exams when a subject is selected', async () => {
-    vi.mocked(useExams).mockReturnValue({ exams, loading: false, error: null });
-
+  it('clicking a subject navigates to /qbank/[subjectId]', () => {
+    const push = vi.fn();
+    vi.mocked(useRouter).mockReturnValue({ push, back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), replace: vi.fn(), prefetch: vi.fn() });
     render(<DashboardPage />);
     fireEvent.click(screen.getByText('Mathematics'));
-    await waitFor(() => expect(screen.getByText('Algebra Basics')).toBeInTheDocument());
+    expect(push).toHaveBeenCalledWith('/qbank/s1');
   });
 
-  it('toggles subject off when clicked again', () => {
-    render(<DashboardPage />);
-    const mathBtn = screen.getByText('Mathematics').closest('button')!;
-    fireEvent.click(mathBtn);
-    fireEvent.click(mathBtn);
-    // exams section disappears
-    expect(screen.queryByText(/Exams/)).not.toBeInTheDocument();
-  });
-
-  it('shows loading skeletons when subjects are loading', async () => {
+  it('shows loading skeletons when subjects are loading', () => {
     vi.mocked(useSubjects).mockReturnValueOnce({ subjects: [], loading: true, error: null });
 
     const { container } = render(<DashboardPage />);
     expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
-  });
-
-  it('shows empty state when no exams in subject', async () => {
-    vi.mocked(useExams).mockReturnValue({ exams: [], loading: false, error: null });
-
-    render(<DashboardPage />);
-    fireEvent.click(screen.getByText('Mathematics'));
-    await waitFor(() => expect(screen.getByText('No exams available yet.')).toBeInTheDocument());
   });
 });
