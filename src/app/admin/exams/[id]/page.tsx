@@ -4,8 +4,8 @@ import { ArrowLeft, Plus } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminExamDetailPage({ params }: { params: { id: string } }) {
-  const examId = params.id;
+export default async function AdminExamDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: examId } = await params;
 
   const { data: exam } = await supabase
     .from('exams')

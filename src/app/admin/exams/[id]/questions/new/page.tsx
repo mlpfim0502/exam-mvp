@@ -5,8 +5,8 @@ import { createQuestion } from '@/actions/admin';
 
 export const dynamic = 'force-dynamic';
 
-export default async function NewQuestionPage({ params }: { params: { id: string } }) {
-  const examId = params.id;
+export default async function NewQuestionPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: examId } = await params;
 
   const { data: exam } = await supabase.from('exams').select('title').eq('id', examId).single();
   if (!exam) return <div className="p-8 text-center text-red-500">Exam not found</div>;

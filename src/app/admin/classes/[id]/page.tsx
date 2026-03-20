@@ -5,8 +5,8 @@ import { ArrowLeft } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ManageClassSubjects({ params }: { params: { id: string } }) {
-  const classId = params.id;
+export default async function ManageClassSubjects({ params }: { params: Promise<{ id: string }> }) {
+  const { id: classId } = await params;
   
   // Fetch class details
   const { data: classData } = await supabase.from('classes').select('*').eq('id', classId).single();
