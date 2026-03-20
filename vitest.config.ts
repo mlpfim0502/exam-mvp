@@ -16,6 +16,8 @@ export default defineConfig({
         'src/test/**',
         'src/app/layout.tsx',
         'src/**/*.d.ts',
+        'src/lib/types.ts',   // type-only file, no runtime code
+        'src/lib/supabase.ts', // infrastructure proxy, mocked in all tests
       ],
       thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
     },
