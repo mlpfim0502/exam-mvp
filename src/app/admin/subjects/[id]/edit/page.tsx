@@ -41,7 +41,7 @@ export default function AdminEditSubjectPage() {
     formData.set('description', description);
 
     startTransition(async () => {
-      const result = await updateSubject(formData);
+      const result = await updateSubject(subjectId, formData);
       if (result?.error) {
         toast.error(result.error);
       } else {
