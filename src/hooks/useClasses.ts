@@ -9,8 +9,10 @@ export function useClasses() {
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
+    setLoading(true);
     supabase
       .from('classes')
       .select('*')
@@ -21,7 +23,9 @@ export function useClasses() {
         else setClasses(data ?? []);
         setLoading(false);
       });
-  }, []);
+  }, [tick]);
 
-  return { classes, loading, error };
+  const refetch = () => setTick((t) => t + 1);
+
+  return { classes, loading, error, refetch };
 }
