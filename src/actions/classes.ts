@@ -68,3 +68,9 @@ export async function updateUserRole(userId: string, role: string) {
   if (error) throw new Error(error.message);
   revalidatePath('/admin/users');
 }
+
+// Form-safe toggle: bind(null, userId, currentRole) then Next.js passes FormData
+export async function toggleUserRole(userId: string, currentRole: string, _formData: FormData) {
+  const newRole = currentRole === 'admin' ? 'student' : 'admin';
+  await updateUserRole(userId, newRole);
+}

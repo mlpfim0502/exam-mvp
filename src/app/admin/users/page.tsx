@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { updateUserRole } from '@/actions/classes';
+import { toggleUserRole } from '@/actions/classes';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,14 +45,10 @@ export default async function AdminUsersPage() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <form action={async () => {
-                    'use server'
-                    await updateUserRole(user.id, user.role === 'admin' ? 'student' : 'admin');
-                  }}>
-                    <button type="submit" className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1.5 rounded-md mr-2">
+                  <form action={toggleUserRole.bind(null, user.id, user.role)} className="inline-flex gap-2">
+                    <button type="submit" className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1.5 rounded-md">
                       Toggle Role
                     </button>
-                    {/* Navigate to a specific page to manage the classes of the user */}
                     <a href={`/admin/users/${user.id}`} className="text-gray-600 hover:text-gray-900 bg-gray-50 px-3 py-1.5 rounded-md border border-gray-200">
                       Classes
                     </a>
