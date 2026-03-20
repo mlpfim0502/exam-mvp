@@ -3,6 +3,10 @@ import { usePathname } from 'next/navigation';
 import { vi } from 'vitest';
 import BottomNav from '@/components/BottomNav';
 
+vi.mock('next/navigation', () => ({
+  usePathname: vi.fn(() => '/'),
+}));
+
 it('renders Class and Qbank tabs', () => {
   render(<BottomNav />);
   expect(screen.getByText('Class')).toBeInTheDocument();
