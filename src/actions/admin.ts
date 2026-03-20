@@ -82,3 +82,9 @@ export async function createQuestion(examId: string, formData: FormData) {
   revalidatePath(`/admin/exams/${examId}`);
   return data;
 }
+
+// Form-safe version using hidden examId field
+export async function createQuestionForm(formData: FormData) {
+  const examId = formData.get('examId') as string;
+  return createQuestion(examId, formData);
+}
