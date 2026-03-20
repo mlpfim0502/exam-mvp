@@ -9,32 +9,34 @@ vi.mock('next/navigation', () => ({
   useSearchParams: vi.fn(() => ({ get: vi.fn(() => null) })),
 }));
 
+// The sidebar renders two navs (desktop + mobile) so each label appears twice.
+// getAllByText()[0] targets the desktop nav instance.
 describe('AdminSidebar', () => {
   it('renders all navigation links', () => {
     render(<AdminSidebar />);
-    expect(screen.getByText('Overview')).toBeInTheDocument();
-    expect(screen.getByText('Classes')).toBeInTheDocument();
-    expect(screen.getByText('Subjects')).toBeInTheDocument();
-    expect(screen.getByText('Users')).toBeInTheDocument();
+    expect(screen.getAllByText('Overview').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Classes').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Subjects').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Users').length).toBeGreaterThan(0);
   });
 
   it('renders navigation links with correct hrefs', () => {
     render(<AdminSidebar />);
-    const overviewLink = screen.getByText('Overview').closest('a');
-    const classesLink = screen.getByText('Classes').closest('a');
+    const overviewLink = screen.getAllByText('Overview')[0].closest('a');
+    const classesLink  = screen.getAllByText('Classes')[0].closest('a');
     expect(overviewLink).toHaveAttribute('href', '/admin');
     expect(classesLink).toHaveAttribute('href', '/admin/classes');
   });
 
   it('highlights active link when on /admin', () => {
     render(<AdminSidebar />);
-    const overviewLink = screen.getByText('Overview').closest('a');
+    const overviewLink = screen.getAllByText('Overview')[0].closest('a');
     expect(overviewLink).toHaveClass('bg-indigo-100');
   });
 
   it('does not highlight inactive links', () => {
     render(<AdminSidebar />);
-    const classesLink = screen.getByText('Classes').closest('a');
+    const classesLink = screen.getAllByText('Classes')[0].closest('a');
     expect(classesLink).not.toHaveClass('bg-indigo-100');
   });
 });
