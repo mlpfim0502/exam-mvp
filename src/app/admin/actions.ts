@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createAdminClient } from '@/lib/supabaseAdmin';
+import type { UserRole } from '@/lib/types';
 
 // ── Admin session auth ──────────────────────────────────────────────────────
 
@@ -273,3 +274,22 @@ export async function deleteQuestion(
   revalidatePath(`/admin/exams/${exam_id}`);
   return { success: true };
 }
+
+export async function updateUser(
+  userId: string,
+  data: { class_id?: string | null; is_blocked?: boolean }
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createAdminClient();
+
+  // If changing class_id, verify the class exists if we want, but DB constraint handles it.
+  const { error } = await supabase
+    .from('users')
+    .update(data)
+    .eq('id', userId);
+
+  if (error) return { success: false, error: error.message };
+  revalidatePath('/admin/users');
+  return { success: true };
+}
+
+
