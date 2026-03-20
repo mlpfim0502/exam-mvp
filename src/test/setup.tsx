@@ -7,6 +7,7 @@ vi.mock('next/navigation', () => ({
   useParams: vi.fn(() => ({ id: 'exam-123' })),
   useRouter: vi.fn(() => ({ push: vi.fn() })),
   useSearchParams: vi.fn(() => ({ get: vi.fn(() => 'attempt-abc') })),
+  usePathname: vi.fn(() => '/'),
 }));
 
 // Mock next/image — renders a plain <img> in test env
