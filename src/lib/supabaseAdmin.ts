@@ -1,6 +1,7 @@
 // src/lib/supabaseAdmin.ts
 // Server-only Supabase client using the service role key.
 // NEVER import this in client components — it bypasses RLS.
+import 'server-only';
 import { createClient } from '@supabase/supabase-js';
 
 export function createAdminClient() {

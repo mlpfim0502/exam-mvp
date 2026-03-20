@@ -18,6 +18,7 @@ export default defineConfig({
         'src/**/*.d.ts',
         'src/lib/types.ts',   // type-only file, no runtime code
         'src/lib/supabase.ts', // infrastructure proxy, mocked in all tests
+        'src/lib/supabaseAdmin.ts', // server-only admin client, not unit-testable
       ],
       thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
     },
