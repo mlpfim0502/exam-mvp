@@ -1,0 +1,92 @@
+'use server';
+
+import { supabase } from '@/lib/supabase';
+import { revalidatePath } from 'next/cache';
+
+export async function createClass(formData: FormData) {
+  const name = formData.get('name') as string;
+  const description = formData.get('description') as string;
+
+  if (!name) throw new Error("Class name is required");
+
+  const { data, error } = await supabase
+    .from('classes')
+    .insert([{ name, description: description || null }])
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/admin/classes');
+  return data;
+}
+
+export async function updateClassSubjects(classId: string, subjectIds: string[]) {
+  // Clear old links
+  await supabase.from('class_subjects').delete().eq('class_id', classId);
+  
+  // Insert new links
+  if (subjectIds.length > 0) {
+    const inserts = subjectIds.map(subId => ({ class_id: classId, subject_id: subId }));
+    const { error } = await supabase.from('class_subjects').insert(inserts);
+    if (error) throw new Error(error.message);
+  }
+
+  revalidatePath('/admin/classes');
+  revalidatePath('/admin/classes/' + classId);
+  revalidatePath('/');
+}
+
+// Form-safe wrapper using hidden fields
+export async function saveClassSubjectsForm(formData: FormData) {
+  const classId    = formData.get('classId') as string;
+  const subjectIds = formData.getAll('subject_ids') as string[];
+  await updateClassSubjects(classId, subjectIds);
+}
+
+// Safe form-compatible wrapper: called via .bind(null, classId) on the page,
+// then invoked by Next.js with (FormData) as the only runtime arg.
+export async function saveClassSubjects(classId: string, formData: FormData) {
+  const subjectIds = formData.getAll('subject_ids') as string[];
+  await updateClassSubjects(classId, subjectIds);
+}
+
+export async function updateUserClasses(userId: string, classIds: string[]) {
+  // Clear old class assignments
+  await supabase.from('user_classes').delete().eq('user_id', userId);
+  
+  // Insert new class assignments
+  if (classIds.length > 0) {
+    const inserts = classIds.map(cId => ({ user_id: userId, class_id: cId }));
+    const { error } = await supabase.from('user_classes').insert(inserts);
+    if (error) throw new Error(error.message);
+  }
+
+  revalidatePath('/admin/users');
+  revalidatePath('/');
+}
+
+// Form-safe wrapper using hidden fields
+export async function saveUserClassesForm(formData: FormData) {
+  const userId   = formData.get('userId') as string;
+  const classIds = formData.getAll('class_ids') as string[];
+  await updateUserClasses(userId, classIds);
+}
+
+export async function updateUserRole(userId: string, role: string) {
+  const { error } = await supabase
+    .from('users')
+    .update({ role })
+    .eq('id', userId);
+
+  if (error) throw new Error(error.message);
+  revalidatePath('/admin/users');
+}
+
+// Reads userId + currentRole from hidden form fields (more reliable than .bind() in loops)
+export async function toggleUserRole(formData: FormData) {
+  const userId      = formData.get('userId') as string;
+  const currentRole = formData.get('currentRole') as string;
+  const newRole     = currentRole === 'admin' ? 'student' : 'admin';
+  await updateUserRole(userId, newRole);
+}

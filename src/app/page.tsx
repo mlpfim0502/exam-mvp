@@ -3,16 +3,17 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { GraduationCap } from 'lucide-react';
 import { useLiff } from '@/components/LiffProvider';
-import { useSubjects } from '@/hooks/useSubjects';
+import { useClassSubjects } from '@/hooks/useClassSubjects';
 import { useExams } from '@/hooks/useExams';
 import SubjectCard from '@/components/SubjectCard';
 import ExamCard from '@/components/ExamCard';
 
 export default function DashboardPage() {
-  const { profile } = useLiff();
-  const { subjects, loading: subjectsLoading } = useSubjects();
+  const { profile, supabaseUserId } = useLiff();
+  const { subjects, loading: subjectsLoading, classNames } = useClassSubjects(supabaseUserId);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
   const { exams, loading: examsLoading } = useExams(selectedSubjectId);
 
@@ -44,7 +45,17 @@ export default function DashboardPage() {
             <div>
               <p className="text-sm text-indigo-200">Welcome back,</p>
               <p className="font-semibold">{profile.displayName}</p>
+              {classNames.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {classNames.map(name => (
+                    <span key={name} className="text-xs bg-white/20 px-2 py-0.5 rounded-full">{name}</span>
+                  ))}
+                </div>
+              )}
             </div>
+            <Link href="/admin" className="ml-auto text-xs bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition font-medium">
+              Admin
+            </Link>
           </div>
         )}
       </div>
@@ -53,7 +64,7 @@ export default function DashboardPage() {
         {/* Subjects section */}
         <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            Subjects
+            {classNames.length > 0 ? 'Your Subjects' : 'All Subjects'}
           </h2>
           {subjectsLoading ? (
             <div className="space-y-3">
@@ -61,6 +72,12 @@ export default function DashboardPage() {
                 <div key={i} className="h-16 bg-gray-100 rounded-2xl animate-pulse" />
               ))}
             </div>
+          ) : subjects.length === 0 ? (
+            <p className="text-gray-400 text-sm py-6 text-center">
+              {classNames.length > 0
+                ? 'No subjects assigned to your class yet.'
+                : 'No subjects available.'}
+            </p>
           ) : (
             <div className="space-y-2">
               {subjects.map((subject) => (

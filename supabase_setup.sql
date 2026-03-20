@@ -61,6 +61,31 @@ CREATE TABLE IF NOT EXISTS attempt_answers (
   is_correct    BOOLEAN
 );
 
+CREATE TABLE IF NOT EXISTS classes (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name        TEXT NOT NULL,
+  description TEXT,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS class_subjects (
+  class_id   UUID REFERENCES classes(id) ON DELETE CASCADE,
+  subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
+  PRIMARY KEY (class_id, subject_id)
+);
+
+CREATE TABLE IF NOT EXISTS user_classes (
+  user_id  UUID REFERENCES users(id) ON DELETE CASCADE,
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
+  PRIMARY KEY (user_id, class_id)
+);
+
+CREATE TABLE IF NOT EXISTS user_subjects (
+  user_id    UUID REFERENCES users(id) ON DELETE CASCADE,
+  subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
+  PRIMARY KEY (user_id, subject_id)
+);
+
 -- Script B: RLS Policies
 ALTER TABLE users           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subjects        ENABLE ROW LEVEL SECURITY;
@@ -68,6 +93,10 @@ ALTER TABLE exams           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE questions       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE exam_attempts   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attempt_answers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE classes         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE class_subjects  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_classes    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_subjects   ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "subjects_public_read"    ON subjects  FOR SELECT USING (true);
 CREATE POLICY "exams_public_read"       ON exams     FOR SELECT USING (true);
@@ -80,6 +109,20 @@ CREATE POLICY "attempts_public_select"  ON exam_attempts FOR SELECT USING (true)
 CREATE POLICY "attempts_public_update"  ON exam_attempts FOR UPDATE USING (true);
 CREATE POLICY "answers_public_insert"   ON attempt_answers FOR INSERT WITH CHECK (true);
 CREATE POLICY "answers_public_select"   ON attempt_answers FOR SELECT USING (true);
+
+CREATE POLICY "classes_public_read"         ON classes        FOR SELECT USING (true);
+CREATE POLICY "class_subjects_public_read"  ON class_subjects FOR SELECT USING (true);
+CREATE POLICY "user_classes_public_read"    ON user_classes   FOR SELECT USING (true);
+CREATE POLICY "user_subjects_public_read"   ON user_subjects  FOR SELECT USING (true);
+
+-- Admin creation policies (open for MVP)
+CREATE POLICY "subjects_public_insert"  ON subjects FOR INSERT WITH CHECK (true);
+CREATE POLICY "exams_public_insert"     ON exams FOR INSERT WITH CHECK (true);
+CREATE POLICY "classes_public_insert"   ON classes FOR INSERT WITH CHECK (true);
+CREATE POLICY "class_subjects_public_insert" ON class_subjects FOR INSERT WITH CHECK (true);
+CREATE POLICY "user_classes_public_insert"   ON user_classes FOR INSERT WITH CHECK (true);
+CREATE POLICY "user_subjects_public_insert"  ON user_subjects FOR INSERT WITH CHECK (true);
+CREATE POLICY "user_subjects_public_delete"  ON user_subjects FOR DELETE USING (true);
 
 -- Script C: Seed Data
 INSERT INTO subjects (name, description) VALUES
