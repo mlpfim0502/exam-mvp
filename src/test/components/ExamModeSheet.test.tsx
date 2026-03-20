@@ -27,4 +27,20 @@ describe('ExamModeSheet', () => {
     fireEvent.click(screen.getByTestId('sheet-backdrop'));
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('switches mode when a different mode button is clicked', () => {
+    const onStart = vi.fn();
+    render(<ExamModeSheet exam={exam} onClose={vi.fn()} onStart={onStart} />);
+    fireEvent.click(screen.getByText('Test'));
+    fireEvent.click(screen.getByText('Start'));
+    expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ mode: 'test' }));
+  });
+
+  it('switches order when In Order button is clicked', () => {
+    const onStart = vi.fn();
+    render(<ExamModeSheet exam={exam} onClose={vi.fn()} onStart={onStart} />);
+    fireEvent.click(screen.getByText('In Order'));
+    fireEvent.click(screen.getByText('Start'));
+    expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ order: 'order' }));
+  });
 });
