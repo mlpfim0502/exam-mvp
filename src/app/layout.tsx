@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body suppressHydrationWarning>
         <LiffProvider>
           {/* Centered container: full-width on mobile, capped on desktop */}
           <div className="min-h-screen mx-auto max-w-[480px] bg-white shadow-sm">
