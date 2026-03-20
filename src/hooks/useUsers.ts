@@ -13,7 +13,7 @@ export function useUsers() {
   useEffect(() => {
     supabase
       .from('users')
-      .select('*')
+      .select('*, classes(id, name)')
       .order('created_at')
       .limit(500)
       .then(({ data, error: err }) => {

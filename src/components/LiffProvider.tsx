@@ -75,11 +75,15 @@ export function LiffProvider({ children }: { children: ReactNode }) {
             },
             { onConflict: 'line_id' }
           )
-          .select('id')
+          .select('id, is_blocked')
           .single();
 
         if (upsertError) {
           throw new Error(`Supabase upsert failed: ${upsertError.message}`);
+        }
+
+        if (user.is_blocked) {
+          throw new Error('Your account has been blocked by the administrator.');
         }
 
         setState({

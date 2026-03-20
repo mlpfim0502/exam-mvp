@@ -8,6 +8,9 @@ export interface User {
   line_id: string;
   display_name: string | null;
   avatar_url: string | null;
+  class_id?: string | null;
+  classes?: { id: string; name: string } | null;
+  is_blocked: boolean;
   role: UserRole;
   created_at: string;
 }

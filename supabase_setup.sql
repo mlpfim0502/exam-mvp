@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS users (
   line_id      TEXT UNIQUE NOT NULL,
   display_name TEXT,
   avatar_url   TEXT,
+  class_id     UUID REFERENCES classes(id) ON DELETE SET NULL,
+  is_blocked   BOOLEAN NOT NULL DEFAULT FALSE,
   role         TEXT NOT NULL DEFAULT 'student',
   created_at   TIMESTAMPTZ DEFAULT NOW()
 );
