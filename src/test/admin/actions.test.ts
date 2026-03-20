@@ -15,8 +15,9 @@ vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => '/'),
 }));
 
+import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabaseAdmin';
-import { createClass, createSubject, toggleUserRole } from '@/app/admin/actions';
+import { createClass, createSubject, saveUserClassesForm, toggleUserRole } from '@/app/admin/actions';
 
 const mockSingle = vi.fn();
 const mockEq = vi.fn();
@@ -50,6 +51,7 @@ describe('createClass', () => {
     await createClass(formData);
     expect(mockFrom).toHaveBeenCalledWith('classes');
     expect(mockInsert).toHaveBeenCalledWith({ name: 'M5' });
+    expect(revalidatePath).toHaveBeenCalledWith('/admin');
   });
 
   it('returns success on insert with no error', async () => {
@@ -83,6 +85,7 @@ describe('createSubject', () => {
     await createSubject(formData);
     expect(mockFrom).toHaveBeenCalledWith('subjects');
     expect(mockInsert).toHaveBeenCalledWith({ name: 'Mathematics', description: null, class_id: 'class-uuid-1' });
+    expect(revalidatePath).toHaveBeenCalledWith('/admin');
   });
 
   it('returns success on insert with no error', async () => {
@@ -99,6 +102,7 @@ describe('toggleUserRole', () => {
     expect(mockFrom).toHaveBeenCalledWith('users');
     expect(mockUpdate).toHaveBeenCalledWith({ role: 'admin' });
     expect(result).toEqual({ success: true });
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/users');
   });
 
   it('sets role to student when current role is admin', async () => {
@@ -111,5 +115,29 @@ describe('toggleUserRole', () => {
     mockEq.mockResolvedValueOnce({ error: { message: 'Permission denied' } });
     const result = await toggleUserRole('user-uuid', 'student');
     expect(result).toEqual({ success: false, error: 'Permission denied' });
+  });
+});
+
+describe('saveUserClassesForm', () => {
+  it('returns error when name is empty', async () => {
+    const formData = new FormData();
+    formData.set('name', '');
+    const result = await saveUserClassesForm(formData);
+    expect(result).toEqual({ success: false, error: 'Class name is required' });
+  });
+
+  it('calls supabase insert on classes table', async () => {
+    const formData = new FormData();
+    formData.set('name', 'M6');
+    await saveUserClassesForm(formData);
+    expect(mockFrom).toHaveBeenCalledWith('classes');
+    expect(mockInsert).toHaveBeenCalledWith({ name: 'M6' });
+  });
+
+  it('returns success on insert with no error', async () => {
+    const formData = new FormData();
+    formData.set('name', 'M6');
+    const result = await saveUserClassesForm(formData);
+    expect(result).toEqual({ success: true });
   });
 });
