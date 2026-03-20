@@ -45,7 +45,9 @@ export default async function AdminUsersPage() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <form action={toggleUserRole.bind(null, user.id, user.role)} className="inline-flex gap-2">
+                  <form action={toggleUserRole} className="inline-flex gap-2">
+                    <input type="hidden" name="userId" value={user.id} />
+                    <input type="hidden" name="currentRole" value={user.role} />
                     <button type="submit" className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1.5 rounded-md">
                       Toggle Role
                     </button>

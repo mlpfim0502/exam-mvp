@@ -69,8 +69,10 @@ export async function updateUserRole(userId: string, role: string) {
   revalidatePath('/admin/users');
 }
 
-// Form-safe toggle: bind(null, userId, currentRole) then Next.js passes FormData
-export async function toggleUserRole(userId: string, currentRole: string, _formData: FormData) {
-  const newRole = currentRole === 'admin' ? 'student' : 'admin';
+// Reads userId + currentRole from hidden form fields (more reliable than .bind() in loops)
+export async function toggleUserRole(formData: FormData) {
+  const userId      = formData.get('userId') as string;
+  const currentRole = formData.get('currentRole') as string;
+  const newRole     = currentRole === 'admin' ? 'student' : 'admin';
   await updateUserRole(userId, newRole);
 }
