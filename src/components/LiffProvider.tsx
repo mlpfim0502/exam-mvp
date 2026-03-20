@@ -64,26 +64,53 @@ export function LiffProvider({ children }: { children: ReactNode }) {
 
         const lineProfile = await liff.getProfile();
 
-        // Upsert user into Supabase users table
-        const { data: user, error: upsertError } = await supabase
+        // 1. Check if user exists first
+        let user;
+        const { data: existingUser, error: fetchError } = await supabase
           .from('users')
-          .upsert(
-            {
+          .select('*')
+          .eq('line_id', lineProfile.userId)
+          .maybeSingle();
+
+        if (fetchError) {
+          throw new Error(`Supabase fetch failed: ${fetchError.message}`);
+        }
+
+        if (existingUser) {
+          if (existingUser.is_blocked) {
+            throw new Error('Your account has been blocked by the administrator.');
+          }
+          
+          // Update profile if changed
+          if (
+            existingUser.display_name !== lineProfile.displayName ||
+            existingUser.avatar_url !== lineProfile.pictureUrl
+          ) {
+            await supabase
+              .from('users')
+              .update({
+                display_name: lineProfile.displayName,
+                avatar_url: lineProfile.pictureUrl ?? null,
+              })
+              .eq('id', existingUser.id);
+          }
+          user = existingUser;
+        } else {
+          // 2. Insert new user
+          const { data: newUser, error: insertError } = await supabase
+            .from('users')
+            .insert({
               line_id: lineProfile.userId,
               display_name: lineProfile.displayName,
               avatar_url: lineProfile.pictureUrl ?? null,
-            },
-            { onConflict: 'line_id' }
-          )
-          .select('id, is_blocked')
-          .single();
+            })
+            .select('*')
+            .single();
 
-        if (upsertError) {
-          throw new Error(`Supabase upsert failed: ${upsertError.message}`);
-        }
-
-        if (user.is_blocked) {
-          throw new Error('Your account has been blocked by the administrator.');
+          if (insertError) {
+            throw new Error(`Supabase insert failed: ${insertError.message}`);
+          }
+          user = newUser;
         }
 
         setState({

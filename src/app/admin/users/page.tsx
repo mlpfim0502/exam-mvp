@@ -5,29 +5,13 @@ import Image from 'next/image';
 import { toast } from 'sonner';
 import { useUsers } from '@/hooks/useUsers';
 import { useClasses } from '@/hooks/useClasses';
-import { toggleUserRole, updateUser } from '@/app/admin/actions';
-import type { UserRole } from '@/lib/types';
-import { Shield, ShieldAlert, CheckCircle2, XCircle } from 'lucide-react';
+import { updateUser } from '@/app/admin/actions';
+import { ShieldAlert, CheckCircle2, XCircle } from 'lucide-react';
 
 export default function AdminUsersPage() {
   const { users, loading } = useUsers();
   const { classes } = useClasses();
   const [pendingId, setPendingId] = useState<string | null>(null);
-
-  const handleToggleRole = async (userId: string, currentRole: UserRole) => {
-    const newRole = currentRole === 'admin' ? 'student' : 'admin';
-    const confirmed = window.confirm(
-      `Change this user's role from "${currentRole}" to "${newRole}"?`
-    );
-    if (!confirmed) return;
-
-    setPendingId(userId);
-    const result = await toggleUserRole(userId, currentRole);
-    setPendingId(null);
-
-    if (result.error) toast.error(result.error);
-    else toast.success(`Role updated to ${newRole}`);
-  };
 
   const handleClassChange = async (userId: string, classId: string) => {
     setPendingId(userId);
@@ -136,14 +120,6 @@ export default function AdminUsersPage() {
                 </div>
 
                 <div className="flex items-center gap-2 ml-auto sm:ml-4 sm:flex-row mt-4 sm:mt-0">
-                  <button
-                    onClick={() => handleToggleRole(user.id, user.role)}
-                    disabled={pendingId === user.id}
-                    title={user.role === 'admin' ? 'Demote to Student' : 'Promote to Admin'}
-                    className="p-2.5 rounded-xl text-gray-500 hover:text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-50"
-                  >
-                    <Shield className="w-5 h-5" />
-                  </button>
                   <button
                     onClick={() => handleToggleBlock(user.id, user.is_blocked)}
                     disabled={pendingId === user.id}

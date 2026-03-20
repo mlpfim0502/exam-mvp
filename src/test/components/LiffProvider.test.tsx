@@ -15,14 +15,19 @@ vi.mock('@line/liff', () => ({
   },
 }));
 
+const mockQueryBuilder = {
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+  insert: vi.fn().mockReturnThis(),
+  update: vi.fn().mockReturnThis(),
+  single: vi.fn().mockResolvedValue({ data: { id: 'uuid-123', is_blocked: false }, error: null }),
+};
+
 // Mock Supabase
 vi.mock('@/lib/supabase', () => ({
   supabase: {
-    from: vi.fn(() => ({
-      upsert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { id: 'uuid-123' }, error: null }),
-    })),
+    from: vi.fn(() => mockQueryBuilder),
   },
 }));
 

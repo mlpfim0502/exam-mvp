@@ -22,7 +22,6 @@ vi.mock('@/hooks/useClasses', () => ({
 }));
 
 vi.mock('@/app/admin/actions', () => ({
-  toggleUserRole: vi.fn().mockResolvedValue({ success: true }),
   updateUser: vi.fn().mockResolvedValue({ success: true }),
 }));
 
@@ -64,34 +63,7 @@ describe('AdminUsersPage', () => {
     expect(screen.getByText('admin')).toBeInTheDocument();
   });
 
-  it('renders a toggle role button for each user based on title', () => {
-    render(<AdminUsersPage />);
-    const buttons = screen.getAllByTitle(/Promote to Admin|Demote to Student/i);
-    expect(buttons).toHaveLength(2);
-  });
 
-  it('calls window.confirm before toggling role', () => {
-    render(<AdminUsersPage />);
-    const buttons = screen.getAllByTitle(/Promote to Admin|Demote to Student/i);
-    fireEvent.click(buttons[0]);
-    expect(window.confirm).toHaveBeenCalled();
-  });
-
-  it('calls toggleUserRole when user confirms', async () => {
-    const { toggleUserRole } = await import('@/app/admin/actions');
-    render(<AdminUsersPage />);
-    const buttons = screen.getAllByTitle(/Promote to Admin|Demote to Student/i);
-    fireEvent.click(buttons[0]);
-    await waitFor(() => expect(toggleUserRole).toHaveBeenCalledWith('u1', 'student'));
-  });
-
-  it('shows success toast after successful toggle', async () => {
-    const { toast } = await import('sonner');
-    render(<AdminUsersPage />);
-    const buttons = screen.getAllByTitle(/Promote to Admin|Demote to Student/i);
-    fireEvent.click(buttons[0]);
-    await waitFor(() => expect(toast.success).toHaveBeenCalled());
-  });
 
   it('renders a block/unblock button for each user based on title', () => {
     render(<AdminUsersPage />);
