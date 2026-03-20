@@ -126,12 +126,13 @@ describe('saveUserClassesForm', () => {
     expect(result).toEqual({ success: false, error: 'Class name is required' });
   });
 
-  it('calls supabase insert on classes table', async () => {
+  it('calls supabase insert on classes table and revalidates', async () => {
     const formData = new FormData();
     formData.set('name', 'M6');
     await saveUserClassesForm(formData);
     expect(mockFrom).toHaveBeenCalledWith('classes');
     expect(mockInsert).toHaveBeenCalledWith({ name: 'M6' });
+    expect(revalidatePath).toHaveBeenCalledWith('/admin');
   });
 
   it('returns success on insert with no error', async () => {
